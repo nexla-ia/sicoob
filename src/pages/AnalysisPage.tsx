@@ -322,17 +322,29 @@ export default function AnalysisPage() {
                     </CardHeader>
                     <CardContent className={isSingleItem ? 'pt-4 pb-4' : 'pt-6'}>
                       <div className={isSingleItem ? 'space-y-2' : 'space-y-3'}>
-                        {section.content.map((item, i) => (
-                          <div
-                            key={i}
-                            className={`flex items-start gap-3 rounded-lg bg-white/60 hover:bg-white border border-blue-100 hover:border-blue-300 transition-all duration-200 hover:shadow-md ${isSingleItem ? 'p-2.5' : 'p-3'}`}
-                          >
-                            <span className="text-blue-600 text-xl font-bold mt-0.5 flex-shrink-0">•</span>
-                            <p className="text-base text-slate-800 leading-relaxed flex-1 font-medium">
-                              {item}
-                            </p>
-                          </div>
-                        ))}
+                        {section.content.map((item, i) => {
+                          const parts = item.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <div
+                              key={i}
+                              className={`flex items-start gap-3 rounded-lg bg-white/60 hover:bg-white border border-blue-100 hover:border-blue-300 transition-all duration-200 hover:shadow-md ${isSingleItem ? 'p-2.5' : 'p-3'}`}
+                            >
+                              <span className="text-blue-600 text-xl font-bold mt-0.5 flex-shrink-0">•</span>
+                              <p className="text-base text-slate-800 leading-relaxed flex-1 font-medium">
+                                {parts.map((part, idx) => {
+                                  if (part.startsWith('**') && part.endsWith('**')) {
+                                    return (
+                                      <strong key={idx} className="font-extrabold text-slate-900">
+                                        {part.slice(2, -2)}
+                                      </strong>
+                                    );
+                                  }
+                                  return <span key={idx}>{part}</span>;
+                                })}
+                              </p>
+                            </div>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
