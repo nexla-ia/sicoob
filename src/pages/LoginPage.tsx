@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FileText, AlertCircle } from 'lucide-react';
+import { FileText, AlertCircle, Upload } from 'lucide-react';
 
-export default function LoginPage() {
+interface LoginPageProps {
+  onSkipLogin?: () => void;
+}
+
+export default function LoginPage({ onSkipLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -80,6 +84,16 @@ export default function LoginPage() {
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
+
+        {onSkipLogin && (
+          <button
+            onClick={onSkipLogin}
+            className="w-full mt-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] flex items-center justify-center gap-2"
+          >
+            <Upload className="w-5 h-5" />
+            Entrar Direto para Upload
+          </button>
+        )}
 
         <div className="mt-6 text-center text-sm text-slate-600 font-medium">
           <p>Sicoob - Região Norte do Brasil</p>
