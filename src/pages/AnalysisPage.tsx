@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Upload, FileText, PenLine } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Upload, FileText, PenLine, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +12,7 @@ export default function AnalysisPage() {
   const [analysisTypes, setAnalysisTypes] = useState<any[]>([]);
   const [selectedType, setSelectedType] = useState<string>('');
   const [loadingTypes, setLoadingTypes] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadAnalysisTypes();
@@ -303,8 +306,59 @@ export default function AnalysisPage() {
             sections.push(currentSection);
           }
 
+          const exportToPDF = async () => {
+            if (!contentRef.current) return;
+
+            try {
+              const canvas = await html2canvas(contentRef.current, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+              });
+
+              const imgData = canvas.toDataURL('image/png');
+              const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+              });
+
+              const imgWidth = 210;
+              const pageHeight = 297;
+              const imgHeight = (canvas.height * imgWidth) / canvas.width;
+              let heightLeft = imgHeight;
+              let position = 0;
+
+              pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+              heightLeft -= pageHeight;
+
+              while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+              }
+
+              const fileName = documentResults[selectedDocIndex]?.fileName || 'documento';
+              pdf.save(`analise-${fileName}.pdf`);
+            } catch (error) {
+              console.error('Erro ao gerar PDF:', error);
+            }
+          };
+
           return sections.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <>
+              <div className="flex justify-end mb-4">
+                <Button
+                  onClick={exportToPDF}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </Button>
+              </div>
+              <div ref={contentRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {sections.map((section, idx) => {
                 const itemCount = section.content.length;
                 const isSingleItem = itemCount === 1;
@@ -350,7 +404,8 @@ export default function AnalysisPage() {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </>
           ) : (
             <Card>
               <CardHeader>
