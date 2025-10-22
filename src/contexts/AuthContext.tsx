@@ -23,6 +23,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProfile = async () => {
+    // MOCK - comentado autenticação real
+    const mockUser = localStorage.getItem('mock_user');
+    if (mockUser) {
+      const userData = JSON.parse(mockUser);
+      setUser(userData);
+      setProfile(userData.profile);
+    }
+    setLoading(false);
+
+    /* AUTENTICAÇÃO REAL - COMENTADA
     const token = localStorage.getItem('access_token');
     if (!token) {
       setLoading(false);
@@ -43,9 +53,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const signIn = async (email: string, password: string) => {
+    // MOCK - simula login com dados mockados
+    const mockUserData = {
+      id: 1,
+      email: 'admin@sicoob.com.br',
+      profile: {
+        id: 1,
+        email: 'admin@sicoob.com.br',
+        full_name: 'Administrador Teste',
+        role: 'admin' as 'admin' | 'analyst',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    };
+
+    localStorage.setItem('mock_user', JSON.stringify(mockUserData));
+    setUser(mockUserData);
+    setProfile(mockUserData.profile);
+
+    /* AUTENTICAÇÃO REAL - COMENTADA
     const response = await authApi.login(email, password);
 
     if (response.error) {
@@ -58,9 +88,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       throw new Error('Token não recebido do servidor');
     }
+    */
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    // MOCK - comentado
+    throw new Error('Cadastro desabilitado no modo mock');
+
+    /* AUTENTICAÇÃO REAL - COMENTADA
     const response = await authApi.register(email, password, fullName);
 
     if (response.error) {
@@ -73,12 +108,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       throw new Error('Token não recebido do servidor');
     }
+    */
   };
 
   const signOut = async () => {
+    // MOCK
+    localStorage.removeItem('mock_user');
+    setUser(null);
+    setProfile(null);
+
+    /* AUTENTICAÇÃO REAL - COMENTADA
     api.setToken(null);
     setUser(null);
     setProfile(null);
+    */
   };
 
   return (
