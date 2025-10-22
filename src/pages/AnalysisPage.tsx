@@ -377,6 +377,7 @@ export default function AnalysisPage() {
               disabled={loadingTypes}
             >
               <option value="">{loadingTypes ? 'Carregando...' : 'Selecione um tipo'}</option>
+              <option value="matricula-inteiro-teor">MATRÍCULA (INTEIRO TEOR)</option>
               {analysisTypes.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name}
