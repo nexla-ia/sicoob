@@ -306,41 +306,98 @@ export default function AnalysisPage() {
             sections.push(currentSection);
           }
 
-          const exportToPDF = async () => {
-            if (!contentRef.current) return;
-
+          const exportToPDF = () => {
             try {
-              const canvas = await html2canvas(contentRef.current, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-              });
-
-              const imgData = canvas.toDataURL('image/png');
               const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
                 format: 'a4'
               });
 
-              const imgWidth = 210;
+              const pageWidth = 210;
               const pageHeight = 297;
-              const imgHeight = (canvas.height * imgWidth) / canvas.width;
-              let heightLeft = imgHeight;
-              let position = 0;
-
-              pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-              heightLeft -= pageHeight;
-
-              while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-              }
+              const margin = 15;
+              const contentWidth = pageWidth - (margin * 2);
+              let yPosition = margin;
 
               const fileName = documentResults[selectedDocIndex]?.fileName || 'documento';
+
+              pdf.setFontSize(18);
+              pdf.setFont('helvetica', 'bold');
+              pdf.text('Análise de Documento', margin, yPosition);
+              yPosition += 8;
+
+              pdf.setFontSize(10);
+              pdf.setFont('helvetica', 'normal');
+              pdf.text(fileName, margin, yPosition);
+              yPosition += 10;
+
+              sections.forEach((section, sectionIdx) => {
+                if (yPosition > pageHeight - 40) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+
+                pdf.setFillColor(37, 99, 235);
+                pdf.rect(margin, yPosition, contentWidth, 12, 'F');
+
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(255, 255, 255);
+                pdf.text(section.title, margin + 3, yPosition + 8);
+
+                yPosition += 15;
+                pdf.setTextColor(0, 0, 0);
+
+                section.content.forEach((item, itemIdx) => {
+                  const processedText = item.replace(/\*\*(.*?)\*\*/g, '$1');
+
+                  const lines = pdf.splitTextToSize(`• ${processedText}`, contentWidth - 10);
+                  const lineHeight = 6;
+                  const blockHeight = lines.length * lineHeight + 4;
+
+                  if (yPosition + blockHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+
+                  pdf.setFillColor(240, 247, 255);
+                  pdf.rect(margin + 5, yPosition - 2, contentWidth - 10, blockHeight, 'F');
+
+                  pdf.setDrawColor(191, 219, 254);
+                  pdf.rect(margin + 5, yPosition - 2, contentWidth - 10, blockHeight, 'S');
+
+                  pdf.setFontSize(10);
+
+                  let textY = yPosition + 3;
+                  lines.forEach(line => {
+                    const hasBold = item.match(/\*\*(.*?)\*\*/);
+                    if (hasBold) {
+                      const parts = line.split(/\*\*(.*?)\*\*/g);
+                      let xOffset = margin + 8;
+
+                      parts.forEach((part, idx) => {
+                        if (idx % 2 === 1) {
+                          pdf.setFont('helvetica', 'bold');
+                        } else {
+                          pdf.setFont('helvetica', 'normal');
+                        }
+                        pdf.text(part, xOffset, textY);
+                        xOffset += pdf.getTextWidth(part);
+                      });
+                    } else {
+                      pdf.setFont('helvetica', 'normal');
+                      pdf.text(line, margin + 8, textY);
+                    }
+                    textY += lineHeight;
+                  });
+
+                  yPosition += blockHeight + 3;
+                });
+
+                yPosition += 5;
+              });
+
               pdf.save(`analise-${fileName}.pdf`);
             } catch (error) {
               console.error('Erro ao gerar PDF:', error);
