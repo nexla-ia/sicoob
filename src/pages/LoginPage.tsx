@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FileText, AlertCircle, Upload } from 'lucide-react';
+import { FileText, AlertCircle } from 'lucide-react';
 
-interface LoginPageProps {
-  onSkipLogin?: () => void;
-}
-
-export default function LoginPage({ onSkipLogin }: LoginPageProps) {
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,6 +16,19 @@ export default function LoginPage({ onSkipLogin }: LoginPageProps) {
 
     try {
       await signIn(email, password);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      await signIn('admin@sicoob.com.br', 'admin123');
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login');
     } finally {
@@ -85,15 +94,13 @@ export default function LoginPage({ onSkipLogin }: LoginPageProps) {
           </button>
         </form>
 
-        {onSkipLogin && (
-          <button
-            onClick={onSkipLogin}
-            className="w-full mt-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
-            <Upload className="w-5 h-5" />
-            Entrar Direto para Upload
-          </button>
-        )}
+        <button
+          onClick={handleQuickLogin}
+          disabled={loading}
+          className="w-full mt-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Entrar Direto (Teste)
+        </button>
 
         <div className="mt-6 text-center text-sm text-slate-600 font-medium">
           <p>Sicoob - Região Norte do Brasil</p>

@@ -14,7 +14,6 @@ type PageType = 'analysis' | 'analysis-types' | 'users' | 'token-usage';
 function AppContent() {
   const { user, profile, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageType>('analysis');
-  const [skipLogin, setSkipLogin] = useState(false);
 
   if (loading) {
     return (
@@ -25,10 +24,7 @@ function AppContent() {
   }
 
   if (!user || !profile) {
-    if (skipLogin) {
-      return <AnalysisPage />;
-    }
-    return <LoginPage onSkipLogin={() => setSkipLogin(true)} />;
+    return <LoginPage />;
   }
 
   const handleNavigate = (page: PageType) => {
