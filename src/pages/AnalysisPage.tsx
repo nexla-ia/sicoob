@@ -277,18 +277,24 @@ export default function AnalysisPage() {
           lines.forEach((line: string) => {
             const trimmedLine = line.trim();
 
-            if (trimmedLine.match(/^[A-ZÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜ\s]{3,}$/)) {
+            if (trimmedLine.startsWith('## ')) {
               if (currentSection && currentSection.content.length > 0) {
                 sections.push(currentSection);
               }
-              currentSection = { title: trimmedLine, content: [] };
-            } else if (trimmedLine && currentSection) {
-              currentSection.content.push(trimmedLine);
-            } else if (trimmedLine && !currentSection) {
-              if (!sections.length || sections[sections.length - 1].title !== 'INFORMAÇÕES GERAIS') {
-                sections.push({ title: 'INFORMAÇÕES GERAIS', content: [trimmedLine] });
+              currentSection = { title: trimmedLine.replace('## ', ''), content: [] };
+            } else if (trimmedLine.startsWith('- ')) {
+              if (currentSection) {
+                currentSection.content.push(trimmedLine.replace('- ', ''));
               } else {
-                sections[sections.length - 1].content.push(trimmedLine);
+                if (!sections.length || sections[sections.length - 1].title !== 'INFORMAÇÕES GERAIS') {
+                  sections.push({ title: 'INFORMAÇÕES GERAIS', content: [trimmedLine.replace('- ', '')] });
+                } else {
+                  sections[sections.length - 1].content.push(trimmedLine.replace('- ', ''));
+                }
+              }
+            } else if (trimmedLine && !trimmedLine.startsWith('#')) {
+              if (currentSection) {
+                currentSection.content.push(trimmedLine);
               }
             }
           });
